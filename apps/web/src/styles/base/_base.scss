@@ -1,0 +1,13 @@
+html, body {
+  font-family: $font-family-base;
+  background-color: $color-accent-light;
+  color: $color-text-primary;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  font: $font-family-base;
+  color: $color-primary;
+  font-weight: bold;
+}

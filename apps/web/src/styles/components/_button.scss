@@ -1,0 +1,41 @@
+.btn {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  border-radius: $radius-sm;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s ease;
+
+  &--primary {
+    background-color: $color-primary;
+    color: $color-white;
+
+    &:hover {
+      background-color: $color-primary-light;
+      color: $color-white;
+      transition: all .6s;
+    }
+  }
+
+  &--accent {
+    background-color: $color-accent;
+    color: $color-white;
+
+    &:hover {
+      background-color: $color-accent-light;
+      color: $color-primary;
+      transition: all .6s;
+    }
+  }
+
+  &--outline {
+    background-color: $color-white;
+    color: $color-primary;
+
+    &:hover {
+      background-color: $color-primary-light;
+      color: $color-white;
+      transition: all .6s;
+    }
+  }
+}
