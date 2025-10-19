@@ -5,21 +5,24 @@ from dotenv import load_dotenv
 import os
 import sys
 
-# ---- Cargar variables de entorno (.env del backend) ----
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'app'))
-sys.path.append(BASE_DIR)
+# ---- Configurar rutas ----
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+APP_DIR = os.path.join(BASE_DIR, 'app')
+sys.path.append(APP_DIR)
 
-load_dotenv(os.path.join(BASE_DIR, '..', '.env'))
+# ---- Cargar variables de entorno ----
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
-# ---- Config Alembic ----
+# ---- Configuración Alembic ----
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# ---- Importar Base de modelos ----
-from app.db.base import Base  # ← Importa la Base que tiene los modelos registrados
+# ---- Importar Base y modelos ----
+from app.db.base import Base
+from app.db import import_models  # 👈 esto debe ir después de sys.path y load_dotenv
 
-# ---- Cargar URL de conexión ----
+# ---- URL de conexión ----
 POSTGRES_URL = os.getenv("POSTGRES_URL")
 
 # ---- Modo sin conexión ----

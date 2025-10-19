@@ -31,17 +31,41 @@ export default function RegisterPage() {
     try {
       const { correo, contrasena, ...datosUsuario } = formData;
 
+      // 🔹 Crear usuario en Firebase Auth
       const credencialUsuario = await createUserWithEmailAndPassword(auth, correo, contrasena);
       const usuario = credencialUsuario.user;
 
+      // 🔹 Guardar datos en Firestore
       await setDoc(doc(db, "users", usuario.uid), {
         ...datosUsuario,
         correo,
         creadoEn: new Date(),
       });
 
+      // 🔹 Enviar correo de verificación
       await sendEmailVerification(usuario, {
         url: "https://copa-uva-dev.web.app/verificado",
+      });
+
+      // 🔹 Obtener token para sincronizar con backend (FastAPI)
+      const token = await usuario.getIdToken();
+
+      // 🔹 Enviar datos al backend para guardarlos en Postgres
+      await fetch("http://localhost:8000/api/v1/user/create-or-sync", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uid: usuario.uid,
+          nombre: formData.nombre,
+          edad: formData.edad,
+          ciudad: formData.ciudad,
+          pais: formData.pais,
+          direccion: formData.direccion,
+          correo: formData.correo,
+        }),
       });
 
       setMensaje("✅ Cuenta creada. Revisa tu correo para verificar tu cuenta.");
@@ -55,7 +79,7 @@ export default function RegisterPage() {
         contrasena: "",
       });
     } catch (error: any) {
-      console.error(error);
+      console.error("Error en registro:", error);
       setMensaje(`❌ Error: ${error.message}`);
     } finally {
       setCargando(false);

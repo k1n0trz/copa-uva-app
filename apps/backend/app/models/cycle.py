@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, Date, JSON, ForeignKey
-from app.db.base import Base
+from app.db.base import Base  # 👈 igual aquí
 
 class Cycle(Base):
     __tablename__ = "cycles"
@@ -7,4 +7,4 @@ class Cycle(Base):
     user_id = Column(Integer, ForeignKey("users.id"), index=True)
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=True)
-    meta = Column(JSON, default={})  # síntomas, notas, etc.
+    meta = Column(JSON, default={})

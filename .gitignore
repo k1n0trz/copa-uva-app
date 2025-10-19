@@ -20,6 +20,6 @@ Thumbs.db
 .env
 .env.local
 
-# Firebase secrets
+# Ignorar credenciales privadas de Firebase
 apps/backend/firebase/firebase_service_account.json
 
