@@ -11,7 +11,7 @@
 !.yarn/versions
 
 # Firebase credentials
-firebase-service-account.json
+apps/backend/firebase/firebase_service_account.json
 
 # testing
 /coverage

@@ -5,9 +5,6 @@ __pycache__/
 venv/
 .venv/
 
-# Firebase credentials
-firebase-service-account.json
-
 # Node
 node_modules/
 dist/
@@ -22,3 +19,7 @@ Thumbs.db
 # Env files
 .env
 .env.local
+
+# Firebase secrets
+apps/backend/firebase/firebase_service_account.json
+
