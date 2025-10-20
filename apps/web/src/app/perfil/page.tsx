@@ -187,15 +187,15 @@ export default function PerfilPage() {
       await setDoc(doc(db, "users", user.uid), { photoURL: downloadURL }, { merge: true });
       setProfileUrl(downloadURL);
       setMessage("✅ Foto de perfil actualizada.");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      setMessage(`❌ Error al subir la imagen: ${error.message}`);
+      setMessage(`❌ Error al subir la imagen`);
     } finally {
       setUploading(false);
     }
   };
 
-  const handleSave = async () => {
+    const handleSave = async () => {
     if (!user) return;
 
     setSaving(true);
@@ -208,9 +208,15 @@ export default function PerfilPage() {
       );
       setMessage("✅ Perfil actualizado con éxito.");
       setEditing(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      setMessage(`❌ Error al guardar: ${error.message}`);
+      
+      // Type narrowing para manejar el error correctamente
+      if (error && typeof error === 'object' && 'message' in error) {
+        setMessage(`❌ Error al guardar: ${error.message}`);
+      } else {
+        setMessage("❌ Error desconocido al guardar el perfil.");
+      }
     } finally {
       setSaving(false);
     }

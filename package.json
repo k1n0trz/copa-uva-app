@@ -1,5 +1,12 @@
 {
   "dependencies": {
     "react-hot-toast": "^2.6.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "export": "next export"
   }
+
 }

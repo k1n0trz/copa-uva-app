@@ -78,9 +78,9 @@ export default function RegisterPage() {
         correo: "",
         contrasena: "",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error en registro:", error);
-      setMensaje(`❌ Error: ${error.message}`);
+      setMensaje(`❌ Error`);
     } finally {
       setCargando(false);
     }

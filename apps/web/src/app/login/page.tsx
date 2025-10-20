@@ -4,6 +4,7 @@ import { useState } from "react";
 import { auth } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import { FirebaseError } from "firebase/app";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,12 +35,20 @@ export default function LoginPage() {
 
       setMessage("✅ Inicio de sesión exitoso.");
       router.push("/perfil"); // redirige al perfil
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      if (error.code === "auth/invalid-credential") {
-        setMessage("❌ Correo o contraseña incorrectos.");
+      
+      // Type narrowing para manejar el error correctamente
+      if (error instanceof FirebaseError) {
+        // Ahora TypeScript sabe que error es un FirebaseError
+        if (error.code === "auth/invalid-credential") {
+          setMessage("❌ Correo o contraseña incorrectos.");
+        } else {
+          setMessage(`❌ Error: ${error.message}`);
+        }
       } else {
-        setMessage(`❌ Error: ${error.message}`);
+        // Para cualquier otro tipo de error
+        setMessage("❌ Error desconocido al iniciar sesión.");
       }
     } finally {
       setLoading(false);
