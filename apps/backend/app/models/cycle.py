@@ -1,10 +1,13 @@
-from sqlalchemy import Column, Integer, Date, JSON, ForeignKey
-from app.db.base import Base  # 👈 igual aquí
+from sqlalchemy import Column, Integer, String, ForeignKey
+from app.db.base import Base
 
 class Cycle(Base):
     __tablename__ = "cycles"
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), index=True)
-    start_date = Column(Date, nullable=False)
-    end_date = Column(Date, nullable=True)
-    meta = Column(JSON, default={})
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+
+class CycleEvent(Base):
+    __tablename__ = "cycle_events"
+    id = Column(Integer, primary_key=True, index=True)
+    cycle_id = Column(Integer, ForeignKey("cycles.id"))
+    description = Column(String)
