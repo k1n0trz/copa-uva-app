@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { auth, db } from "@/lib/firebase";
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 
 export default function RegisterPage() {
@@ -31,11 +34,15 @@ export default function RegisterPage() {
     try {
       const { correo, contrasena, ...datosUsuario } = formData;
 
-      // 🔹 Crear usuario en Firebase Auth
-      const credencialUsuario = await createUserWithEmailAndPassword(auth, correo, contrasena);
+      // 🔹 Crear usuario en Firebase Authentication
+      const credencialUsuario = await createUserWithEmailAndPassword(
+        auth,
+        correo,
+        contrasena
+      );
       const usuario = credencialUsuario.user;
 
-      // 🔹 Guardar datos en Firestore
+      // 🔹 Guardar datos básicos en Firestore
       await setDoc(doc(db, "users", usuario.uid), {
         ...datosUsuario,
         correo,
@@ -47,28 +54,44 @@ export default function RegisterPage() {
         url: "https://copa-uva-dev.web.app/verificado",
       });
 
-      // 🔹 Obtener token para sincronizar con backend (FastAPI)
-      const token = await usuario.getIdToken();
+      // 🔹 Enviar datos al backend para guardarlos en PostgreSQL
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:8000/api/v1/users/register",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              firebase_uid: usuario.uid, // 👈 añadimos el UID de Firebase
+              nombre: formData.nombre,
+              correo: formData.correo,
+              ciudad: formData.ciudad,
+              pais: formData.pais,
+              direccion: formData.direccion,
+              edad: Number(formData.edad),
+            }),
+          }
+        );
 
-      // 🔹 Enviar datos al backend para guardarlos en Postgres
-      await fetch("http://localhost:8000/api/v1/user/create-or-sync", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          uid: usuario.uid,
-          nombre: formData.nombre,
-          edad: formData.edad,
-          ciudad: formData.ciudad,
-          pais: formData.pais,
-          direccion: formData.direccion,
-          correo: formData.correo,
-        }),
-      });
+        console.log("📡 Respuesta del backend:", response.status);
+        const data = await response.json().catch(() => ({}));
+        console.log("📦 Data:", data);
 
-      setMensaje("✅ Cuenta creada. Revisa tu correo para verificar tu cuenta.");
+        if (!response.ok) {
+          throw new Error(`Error en backend: ${response.status}`);
+        }
+      } catch (error) {
+        console.error("❌ Error al enviar datos al backend:", error);
+      }
+
+      // 🔹 Mensaje final al usuario
+      setMensaje(
+        "✅ Cuenta creada correctamente. Revisa tu correo para verificar tu cuenta."
+      );
+
+      // 🔹 Reset del formulario
       setFormData({
         nombre: "",
         edad: "",
@@ -78,9 +101,9 @@ export default function RegisterPage() {
         correo: "",
         contrasena: "",
       });
-    } catch (error: unknown) {
-      console.error("Error en registro:", error);
-      setMensaje(`❌ Error`);
+    } catch (error) {
+      console.error("❌ Error en registro Firebase:", error);
+      setMensaje("❌ Error al crear cuenta. Revisa la consola.");
     } finally {
       setCargando(false);
     }
@@ -92,7 +115,9 @@ export default function RegisterPage() {
         onSubmit={handleSubmit}
         className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-md space-y-4"
       >
-        <h1 className="text-2xl font-bold text-primary text-center">Crear cuenta</h1>
+        <h1 className="text-2xl font-bold text-primary text-center">
+          Crear cuenta
+        </h1>
 
         <input
           type="text"
@@ -158,7 +183,11 @@ export default function RegisterPage() {
           required
         />
 
-        <button type="submit" disabled={cargando} className="btn btn--primary w-full">
+        <button
+          type="submit"
+          disabled={cargando}
+          className="btn btn--primary w-full"
+        >
           {cargando ? "Creando cuenta..." : "Registrarse"}
         </button>
 
