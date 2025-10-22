@@ -34,16 +34,25 @@ app.include_router(predictions_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1/users", tags=["Users"])
 
 # 🔹 Inicializar Firebase Admin SDK
+import os
 import firebase_admin
 from firebase_admin import credentials
 from app.core.config import settings
 
 try:
-    # Evitar inicialización duplicada
+    cred_path = settings.FIREBASE_CREDENTIALS
+
+    # Si la ruta no es absoluta, la convertimos relativa al backend
+    if not os.path.isabs(cred_path):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        cred_path = os.path.join(base_dir, "..", cred_path)
+        cred_path = os.path.normpath(cred_path)
+
     if not firebase_admin._apps:
-        cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS)
+        cred = credentials.Certificate(cred_path)
         firebase_admin.initialize_app(cred)
-        print("✅ Firebase Admin inicializado correctamente")
+        print(f"✅ Firebase Admin inicializado correctamente desde {cred_path}")
+
 except Exception as e:
     print(f"⚠️ Error al inicializar Firebase Admin: {e}")
 

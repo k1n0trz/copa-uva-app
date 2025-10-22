@@ -1,101 +1,55 @@
 "use client";
 
 import { useState } from "react";
-import { auth } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { useRouter } from "next/navigation";
-import { FirebaseError } from "firebase/app";
+import { auth } from "@/lib/firebase";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [mensaje, setMensaje] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setMessage("");
+    setMensaje("");
 
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const user = cred.user;
+      const token = await user.getIdToken(); // ← ID token de Firebase
 
-      const user = userCredential.user;
+      // Llamar al backend protegido
+      const resp = await fetch("http://127.0.0.1:8000/api/v1/users/me", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      if (!user.emailVerified) {
-        setMessage("⚠️ Verifica tu correo antes de iniciar sesión.");
-        await auth.signOut();
-        return;
+      const data = await resp.json();
+      console.log("👤 Perfil:", resp.status, data);
+
+      if (!resp.ok) {
+        throw new Error(data?.detail ?? "Login backend falló");
       }
 
-      setMessage("✅ Inicio de sesión exitoso.");
-      router.push("/perfil"); // redirige al perfil
-    } catch (error: unknown) {
-      console.error(error);
-      
-      // Type narrowing para manejar el error correctamente
-      if (error instanceof FirebaseError) {
-        // Ahora TypeScript sabe que error es un FirebaseError
-        if (error.code === "auth/invalid-credential") {
-          setMessage("❌ Correo o contraseña incorrectos.");
-        } else {
-          setMessage(`❌ Error: ${error.message}`);
-        }
-      } else {
-        // Para cualquier otro tipo de error
-        setMessage("❌ Error desconocido al iniciar sesión.");
-      }
-    } finally {
-      setLoading(false);
+      setMensaje(`Bienvenida, ${data.nombre}`);
+      // Aquí puedes: guardar perfil en estado global, redirigir, etc.
+    } catch (err) {
+      console.error(err);
+      setMensaje("❌ Error de login. Revisa consola.");
     }
   };
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-bg px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-md space-y-4"
-      >
-        <h1 className="text-2xl font-bold text-primary text-center">
-          Iniciar sesión
-        </h1>
-
-        <input
-          type="email"
-          placeholder="Correo electrónico"
-          className="input w-full"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-
-        <input
-          type="password"
-          placeholder="Contraseña"
-          className="input w-full"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-
-        <button type="submit" disabled={loading} className="btn btn--accent w-full">
-          {loading ? "Iniciando..." : "Entrar"}
-        </button>
-
-        {message && <p className="text-sm text-center mt-2">{message}</p>}
+    <main className="min-h-screen flex items-center justify-center p-6">
+      <form onSubmit={handleLogin} className="bg-white p-6 rounded-2xl shadow w-full max-w-md space-y-3">
+        <h1 className="text-xl font-bold">Iniciar sesión</h1>
+        <input className="input w-full" type="email" placeholder="Correo" value={email} onChange={e=>setEmail(e.target.value)} required />
+        <input className="input w-full" type="password" placeholder="Contraseña" value={password} onChange={e=>setPassword(e.target.value)} required />
+        <button className="btn btn--primary w-full" type="submit">Entrar</button>
+        {mensaje && <p className="text-sm">{mensaje}</p>}
       </form>
-
-      <button
-        onClick={() => router.push("/register")}
-        className="btn btn--outline mt-4"
-      >
-        Crear una cuenta
-      </button>
     </main>
   );
 }
