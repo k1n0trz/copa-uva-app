@@ -11,7 +11,7 @@ APP_DIR = os.path.join(BASE_DIR, 'app')
 sys.path.append(APP_DIR)
 
 # ---- Cargar variables de entorno ----
-load_dotenv(os.path.join(BASE_DIR, '.env'))
+load_dotenv(os.path.join(BASE_DIR, '.env'), encoding='utf-8')
 
 # ---- Configuración Alembic ----
 config = context.config
@@ -24,7 +24,7 @@ from app.db import import_models  # 👈 esto debe ir después de sys.path y loa
 
 # ---- URL de conexión ----
 POSTGRES_URL = os.getenv("POSTGRES_URL")
-
+print(f"📡 POSTGRES_URL cargado: {POSTGRES_URL!r}")
 # ---- Modo sin conexión ----
 def run_migrations_offline():
     context.configure(
